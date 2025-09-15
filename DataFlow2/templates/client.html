@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Cliente - DataFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1E1E1E, #000000);
+            color: #E5E7EB;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .floating-card {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 50px rgba(255, 215, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .floating-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.2);
+        }
+
+        .gold-button {
+            background: linear-gradient(45deg, #FFD700, #DAA520);
+            color: #000;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+            border-radius: 9999px;
+        }
+
+        .gold-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body class="p-8">
+    <nav class="flex justify-between items-center mb-10">
+        <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">DataFlow</h1>
+        <div class="space-x-4 flex items-center">
+            <span class="text-gray-400 text-sm">Bem-vindo, {{ user_email }}</span>
+            <a href="/logout" class="px-4 py-2 gold-button">Sair</a>
+        </div>
+    </nav>
+    <main class="flex-grow">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Card de Agenda -->
+            <div class="p-6 floating-card">
+                <h2 class="text-2xl font-semibold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Agenda</h2>
+                <p class="text-gray-400">Gerencie seus compromissos e agendamentos de forma prática e rápida.</p>
+            </div>
+            <!-- Card de Servicos e Produtos -->
+            <div class="p-6 floating-card">
+                <h2 class="text-2xl font-semibold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Serviços e Produtos</h2>
+                <p class="text-gray-400">Explore e gerencie a lista completa dos nossos serviços e produtos.</p>
+            </div>
+            <!-- Card de Nossos Servicos -->
+            <div class="p-6 floating-card">
+                <h2 class="text-2xl font-semibold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Nossos Serviços</h2>
+                <p class="text-gray-400">Conheça o catálogo completo de serviços disponíveis para você e seus clientes.</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

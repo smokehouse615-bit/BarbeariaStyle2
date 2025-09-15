@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - DataFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1E1E1E, #000000);
+            color: #E5E7EB;
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .floating-card {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 50px rgba(255, 215, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .floating-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.2);
+        }
+
+        .gold-button {
+            background: linear-gradient(45deg, #FFD700, #DAA520);
+            color: #000;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+
+        .gold-button:hover {
+            transform: scale(1.05);
+        }
+
+        .gold-border {
+            border-image: linear-gradient(45deg, #FFD700, #DAA520) 1;
+            border-width: 2px;
+            border-style: solid;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: rgba(30, 30, 30, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            transform: scale(0.95);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal-open {
+            display: flex;
+        }
+
+        .modal-open .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="p-4 flex justify-between items-center bg-transparent backdrop-blur-md">
+        <div class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">DataFlow</div>
+        <nav class="flex space-x-4">
+            <button id="painel-btn" class="px-4 py-2 rounded-full bg-gray-700 hover:bg-yellow-500 hover:text-black transition-colors">Painel</button>
+            <button id="profissionais-btn" class="px-4 py-2 rounded-full bg-gray-700 hover:bg-yellow-500 hover:text-black transition-colors">Profissionais</button>
+            <button id="servicos-btn" class="px-4 py-2 rounded-full bg-gray-700 hover:bg-yellow-500 hover:text-black transition-colors">Serviços e Produtos</button>
+            <a href="/logout" class="px-4 py-2 rounded-full bg-gray-700 hover:bg-red-500 hover:text-white transition-colors">Sair</a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-8 fade-in">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                Bem-vindo ao Painel Administrativo
+            </h1>
+            <p class="text-gray-400">Visão geral do sistema e controle total de dados.</p>
+        </div>
+
+        <!-- Seção do Painel (Dashboard) -->
+        <section id="painel-section" class="space-y-8">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Card de Faturamento Total -->
+                <div class="floating-card p-6 text-center">
+                    <h3 class="text-gray-400 text-sm">Faturamento Total</h3>
+                    <p id="total-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                </div>
+                <!-- Card de Faturamento por Mês -->
+                <div class="floating-card p-6 text-center">
+                    <h3 class="text-gray-400 text-sm">Faturamento Mês</h3>
+                    <p id="monthly-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                </div>
+                <!-- Card de Faturamento por Semana -->
+                <div class="floating-card p-6 text-center">
+                    <h3 class="text-gray-400 text-sm">Faturamento Semana</h3>
+                    <p id="weekly-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                </div>
+                <!-- Card de Faturamento por Dia -->
+                <div class="floating-card p-6 text-center">
+                    <h3 class="text-gray-400 text-sm">Faturamento Hoje</h3>
+                    <p id="daily-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                </div>
+            </div>
+
+            <!-- Relatório de Métodos de Pagamento -->
+            <div class="floating-card p-6">
+                <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4">Relatório de Pagamentos</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400">Pix</h4>
+                        <p id="pix-revenue" class="text-xl font-bold mt-1 text-white">R$ 0,00</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400">Dinheiro</h4>
+                        <p id="cash-revenue" class="text-xl font-bold mt-1 text-white">R$ 0,00</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400">Débito</h4>
+                        <p id="debit-revenue" class="text-xl font-bold mt-1 text-white">R$ 0,00</p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg">
+                        <h4 class="text-sm text-gray-400">Crédito</h4>
+                        <p id="credit-revenue" class="text-xl font-bold mt-1 text-white">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção de Profissionais -->
+        <section id="profissionais-section" class="hidden">
+            <div class="floating-card p-6 mb-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Gerenciar Profissionais</h2>
+                    <button id="add-professional-btn" class="px-4 py-2 rounded-full gold-button hover:scale-105 transition-transform">Adicionar Profissional</button>
+                </div>
+                <div id="professional-message-container" class="mb-4 text-center"></div>
+                <div id="loading-professionals" class="text-center text-gray-400">Carregando profissionais...</div>
+                <table id="professionals-table" class="w-full text-left hidden">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th class="py-2 px-4 rounded-tl-lg">Nome</th>
+                            <th class="py-2 px-4">Comissão</th>
+                            <th class="py-2 px-4">Email</th>
+                            <th class="py-2 px-4 rounded-tr-lg"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="professionals-list" class="divide-y divide-gray-700">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Seção de Serviços e Produtos -->
+        <section id="servicos-section" class="hidden">
+            <div class="floating-card p-6">
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4">Gerenciar Serviços e Produtos</h2>
+                <div id="service-message-container" class="mb-4 text-center"></div>
+
+                <form id="service-product-form" class="space-y-4 mb-8">
+                    <div>
+                        <label for="service_name" class="block text-sm font-medium text-gray-400">Nome do Serviço/Produto</label>
+                        <input type="text" id="service_name" name="name" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label for="service_price" class="block text-sm font-medium text-gray-400">Preço (R$)</label>
+                        <input type="number" id="service_price" name="price" min="0.01" step="0.01" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                    </div>
+                    <div class="flex items-center mt-4">
+                        <input type="checkbox" id="is_product" name="is_product" class="h-4 w-4 text-yellow-500 focus:ring-yellow-400 border-gray-600 rounded">
+                        <label for="is_product" class="ml-2 block text-sm text-gray-400">É um produto?</label>
+                    </div>
+                    <button type="submit" class="w-full px-6 py-3 rounded-xl gold-button text-gray-900 shadow-lg hover:shadow-xl transition-transform">
+                        Adicionar
+                    </button>
+                </form>
+
+                <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4">Serviços e Produtos Cadastrados</h3>
+                <div id="loading-services" class="text-center text-gray-400">Carregando serviços...</div>
+                <table id="services-table" class="w-full text-left hidden">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th class="py-2 px-4 rounded-tl-lg">Tipo</th>
+                            <th class="py-2 px-4">Nome</th>
+                            <th class="py-2 px-4 rounded-tr-lg">Preço (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="services-list" class="divide-y divide-gray-700">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Cadastro de Profissional -->
+    <div id="professional-modal" class="modal-overlay">
+        <div class="modal-content relative floating-card p-8">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-6">Cadastrar Profissional</h3>
+
+            <div id="modal-message-container" class="mb-4 text-center"></div>
+
+            <form id="professional-form" class="space-y-4">
+                <div>
+                    <label for="prof_name" class="block text-sm font-medium text-gray-400">Nome Completo</label>
+                    <input type="text" id="prof_name" name="name" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="prof_email" class="block text-sm font-medium text-gray-400">Email</label>
+                    <input type="email" id="prof_email" name="email" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="prof_password" class="block text-sm font-medium text-gray-400">Senha</label>
+                    <input type="password" id="prof_password" name="password" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="prof_phone" class="block text-sm font-medium text-gray-400">Telefone</label>
+                    <input type="tel" id="prof_phone" name="phone" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="prof_cpf" class="block text-sm font-medium text-gray-400">CPF/CNPJ</label>
+                    <input type="text" id="prof_cpf" name="cpf_cnpj" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="prof_commission" class="block text-sm font-medium text-gray-400">Comissão (%)</label>
+                    <input type="number" id="prof_commission" name="commission" min="0" max="100" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <button type="submit" class="w-full px-6 py-3 rounded-xl gold-button text-gray-900 shadow-lg hover:shadow-xl transition-transform">
+                    Cadastrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Profissional -->
+    <div id="edit-professional-modal" class="modal-overlay">
+        <div class="modal-content relative floating-card p-8">
+            <button id="close-edit-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-6">Editar Profissional</h3>
+
+            <div id="edit-modal-message-container" class="mb-4 text-center"></div>
+
+            <form id="edit-professional-form" class="space-y-4">
+                <input type="hidden" id="edit_prof_id" name="id">
+                <div>
+                    <label for="edit_prof_name" class="block text-sm font-medium text-gray-400">Nome Completo</label>
+                    <input type="text" id="edit_prof_name" name="name" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="edit_prof_email" class="block text-sm font-medium text-gray-400">Email</label>
+                    <input type="email" id="edit_prof_email" name="email" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="edit_prof_phone" class="block text-sm font-medium text-gray-400">Telefone</label>
+                    <input type="tel" id="edit_prof_phone" name="phone" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="edit_prof_cpf" class="block text-sm font-medium text-gray-400">CPF/CNPJ</label>
+                    <input type="text" id="edit_prof_cpf" name="cpf_cnpj" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="edit_prof_commission" class="block text-sm font-medium text-gray-400">Comissão (%)</label>
+                    <input type="number" id="edit_prof_commission" name="commission" min="0" max="100" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <button type="submit" class="w-full px-6 py-3 rounded-xl gold-button text-gray-900 shadow-lg hover:shadow-xl transition-transform">
+                    Salvar Alterações
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Lançar Vale -->
+    <div id="voucher-modal" class="modal-overlay">
+        <div class="modal-content relative floating-card p-8">
+            <button id="close-voucher-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 class="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-6">Lançar Vale</h3>
+
+            <div id="voucher-message-container" class="mb-4 text-center"></div>
+
+            <form id="voucher-form" class="space-y-4">
+                <input type="hidden" id="voucher_prof_id" name="id">
+                <div>
+                    <label for="voucher_amount" class="block text-sm font-medium text-gray-400">Valor do Vale (R$)</label>
+                    <input type="number" id="voucher_amount" name="amount" min="0.01" step="0.01" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <button type="submit" class="w-full px-6 py-3 rounded-xl gold-button text-gray-900 shadow-lg hover:shadow-xl transition-transform">
+                    Lançar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro de Serviço/Produto -->
+    <div id="service-product-modal" class="modal-overlay">
+        <div class="modal-content relative floating-card p-8">
+            <button id="close-service-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 id="service-modal-title" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-6"></h3>
+            <div id="service-modal-message-container" class="mb-4 text-center"></div>
+            <form id="service-product-form" class="space-y-4">
+                <input type="hidden" id="item_type" name="item_type">
+                <div>
+                    <label for="item_name" class="block text-sm font-medium text-gray-400">Nome</label>
+                    <input type="text" id="item_name" name="name" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label for="item_price" class="block text-sm font-medium text-gray-400">Preço (R$)</label>
+                    <input type="number" id="item_price" name="price" min="0.01" step="0.01" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                </div>
+                <button type="submit" class="w-full px-6 py-3 rounded-xl gold-button text-gray-900 shadow-lg hover:shadow-xl transition-transform">
+                    Adicionar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const painelBtn = document.getElementById('painel-btn');
+        const profissionaisBtn = document.getElementById('profissionais-btn');
+        const servicosBtn = document.getElementById('servicos-btn');
+
+        const painelSection = document.getElementById('painel-section');
+        const profissionaisSection = document.getElementById('profissionais-section');
+        const servicosSection = document.getElementById('servicos-section');
+
+        const professionalModal = document.getElementById('professional-modal');
+        const addProfessionalBtn = document.getElementById('add-professional-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const professionalForm = document.getElementById('professional-form');
+
+        const editProfessionalModal = document.getElementById('edit-professional-modal');
+        const closeEditModalBtn = document.getElementById('close-edit-modal-btn');
+        const editProfessionalForm = document.getElementById('edit-professional-form');
+
+        const voucherModal = document.getElementById('voucher-modal');
+        const closeVoucherModalBtn = document.getElementById('close-voucher-modal-btn');
+        const voucherForm = document.getElementById('voucher-form');
+
+        const serviceProductModal = document.getElementById('service-product-modal');
+        const closeServiceModalBtn = document.getElementById('close-service-modal-btn');
+        const serviceProductForm = document.getElementById('service-product-form');
+
+        const addServiceBtn = document.getElementById('add-service-btn');
+        const addProductBtn = document.getElementById('add-product-btn');
+
+        let allProfessionals = [];
+
+        // Alternar seções
+        function showSection(sectionToShow) {
+            painelSection.classList.add('hidden');
+            profissionaisSection.classList.add('hidden');
+            servicosSection.classList.add('hidden');
+            sectionToShow.classList.remove('hidden');
+        }
+
+        painelBtn.addEventListener('click', () => {
+            showSection(painelSection);
+            fetchFinancialSummary();
+            fetchPaymentSummary();
+        });
+
+        profissionaisBtn.addEventListener('click', () => {
+            showSection(profissionaisSection);
+            fetchProfessionals();
+        });
+
+        servicosBtn.addEventListener('click', () => {
+            showSection(servicosSection);
+            fetchServices();
+        });
+
+        // Modal de Cadastro de Profissional
+        addProfessionalBtn.addEventListener('click', () => {
+            professionalModal.classList.add('modal-open');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            professionalModal.classList.remove('modal-open');
+        });
+
+        // Modal de Edição de Profissional
+        closeEditModalBtn.addEventListener('click', () => {
+            editProfessionalModal.classList.remove('modal-open');
+        });
+
+        // Modal de Lançar Vale
+        closeVoucherModalBtn.addEventListener('click', () => {
+            voucherModal.classList.remove('modal-open');
+        });
+
+        // Modal de Serviço/Produto
+        closeServiceModalBtn.addEventListener('click', () => {
+            serviceProductModal.classList.remove('modal-open');
+        });
+
+        addServiceBtn.addEventListener('click', () => {
+            document.getElementById('service-modal-title').textContent = 'Adicionar Serviço';
+            document.getElementById('item_type').value = 'service';
+            serviceProductModal.classList.add('modal-open');
+        });
+
+        addProductBtn.addEventListener('click', () => {
+            document.getElementById('service-modal-title').textContent = 'Adicionar Produto';
+            document.getElementById('item_type').value = 'product';
+            serviceProductModal.classList.add('modal-open');
+        });
+
+        // Cadastro de Profissional
+        professionalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(professionalForm);
+            const data = Object.fromEntries(formData.entries());
+
+            const messageContainer = document.getElementById('modal-message-container');
+
+            try {
+                const response = await fetch('/register_professional', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageContainer.innerHTML = `<p class="text-green-400">${result.message}</p>`;
+                    professionalForm.reset();
+                    fetchProfessionals();
+                    setTimeout(() => professionalModal.classList.remove('modal-open'), 2000);
+                } else {
+                    messageContainer.innerHTML = `<p class="text-red-400">${result.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                messageContainer.innerHTML = `<p class="text-red-400">Erro ao conectar com o servidor. Tente novamente.</p>`;
+            }
+        });
+
+        // Edição de Profissional
+        editProfessionalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const profId = document.getElementById('edit_prof_id').value;
+            const formData = new FormData(editProfessionalForm);
+            const data = Object.fromEntries(formData.entries());
+
+            const messageContainer = document.getElementById('edit-modal-message-container');
+
+            try {
+                const response = await fetch(`/api/professionals/update/${profId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageContainer.innerHTML = `<p class="text-green-400">${result.message}</p>`;
+                    fetchProfessionals();
+                    setTimeout(() => editProfessionalModal.classList.remove('modal-open'), 2000);
+                } else {
+                    messageContainer.innerHTML = `<p class="text-red-400">${result.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                messageContainer.innerHTML = `<p class="text-red-400">Erro ao conectar com o servidor. Tente novamente.</p>`;
+            }
+        });
+
+        // Lançar Vale
+        voucherForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const profId = document.getElementById('voucher_prof_id').value;
+            const formData = new FormData(voucherForm);
+            const data = Object.fromEntries(formData.entries());
+
+            const messageContainer = document.getElementById('voucher-message-container');
+
+            try {
+                const response = await fetch(`/api/professionals/voucher/${profId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageContainer.innerHTML = `<p class="text-green-400">${result.message}</p>`;
+                    voucherForm.reset();
+                    setTimeout(() => voucherModal.classList.remove('modal-open'), 2000);
+                } else {
+                    messageContainer.innerHTML = `<p class="text-red-400">${result.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                messageContainer.innerHTML = `<p class="text-red-400">Erro ao conectar com o servidor. Tente novamente.</p>`;
+            }
+        });
+
+        // Cadastro de Serviço/Produto
+        serviceProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(serviceProductForm);
+            const data = Object.fromEntries(formData.entries());
+            const messageContainer = document.getElementById('service-modal-message-container');
+
+            try {
+                const response = await fetch('/api/services/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    messageContainer.innerHTML = `<p class="text-green-400">${result.message}</p>`;
+                    serviceProductForm.reset();
+                    fetchServices();
+                } else {
+                    messageContainer.innerHTML = `<p class="text-red-400">${result.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                messageContainer.innerHTML = `<p class="text-red-400">Erro ao conectar com o servidor. Tente novamente.</p>`;
+            }
+        });
+
+        async function fetchServices() {
+            const loadingServices = document.getElementById('loading-services');
+            const listServices = document.getElementById('services-list');
+            const loadingProducts = document.getElementById('loading-products');
+            const listProducts = document.getElementById('products-list');
+            const tableServices = document.getElementById('services-table');
+            const tableProducts = document.getElementById('products-table');
+
+            loadingServices.classList.remove('hidden');
+            loadingProducts.classList.remove('hidden');
+            tableServices.classList.add('hidden');
+            tableProducts.classList.add('hidden');
+
+            listServices.innerHTML = '';
+            listProducts.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/services');
+                const services = await response.json();
+
+                services.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="py-2 px-4">${item.is_product === 1 ? 'Produto' : 'Serviço'}</td><td class="py-2 px-4">${item.name}</td><td class="py-2 px-4">R$ ${item.price.toFixed(2)}</td>`;
+                    if (item.is_product === 0) {
+                        listServices.appendChild(row);
+                    } else {
+                        listProducts.appendChild(row);
+                    }
+                });
+
+                loadingServices.classList.add('hidden');
+                loadingProducts.classList.add('hidden');
+                tableServices.classList.remove('hidden');
+                tableProducts.classList.remove('hidden');
+
+            } catch (error) {
+                loadingServices.innerHTML = `<p class="text-red-400">Erro ao carregar serviços.</p>`;
+                loadingProducts.innerHTML = `<p class="text-red-400">Erro ao carregar produtos.</p>`;
+            }
+        }
+
+
+        // Função de Deleção
+        async function deleteProfessional(id) {
+            if (confirm("Tem certeza que deseja excluir este profissional?")) {
+                try {
+                    const response = await fetch(`/api/professionals/delete/${id}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert("Profissional excluído com sucesso!");
+                        fetchProfessionals();
+                    } else {
+                        alert(`Erro: ${result.message}`);
+                    }
+                } catch (error) {
+                    alert("Erro ao conectar com o servidor para excluir.");
+                }
+            }
+        }
+
+        // Carregar faturamento
+        async function fetchFinancialSummary() {
+            try {
+                const response = await fetch('/api/financial_summary');
+                const summary = await response.json();
+
+                document.getElementById('total-revenue').textContent = `R$ ${summary.total_revenue.toFixed(2)}`;
+                document.getElementById('monthly-revenue').textContent = `R$ ${summary.monthly_revenue.toFixed(2)}`;
+                document.getElementById('weekly-revenue').textContent = `R$ ${summary.weekly_revenue.toFixed(2)}`;
+                document.getElementById('daily-revenue').textContent = `R$ ${summary.daily_revenue.toFixed(2)}`;
+            } catch (error) {
+                console.error('Erro ao carregar resumo financeiro:', error);
+            }
+        }
+
+        async function fetchPaymentSummary() {
+            try {
+                const response = await fetch('/api/payment_summary');
+                const summary = await response.json();
+
+                document.getElementById('pix-revenue').textContent = `R$ ${(summary.Pix || 0).toFixed(2)}`;
+                document.getElementById('cash-revenue').textContent = `R$ ${(summary.Dinheiro || 0).toFixed(2)}`;
+                document.getElementById('debit-revenue').textContent = `R$ ${(summary.Débito || 0).toFixed(2)}`;
+                document.getElementById('credit-revenue').textContent = `R$ ${(summary.Crédito || 0).toFixed(2)}`;
+            } catch (error) {
+                console.error('Erro ao carregar resumo de pagamentos:', error);
+            }
+        }
+
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection(painelSection);
+            fetchFinancialSummary();
+            fetchPaymentSummary();
+        });
+
+        // Gerenciar dropdown de menu
+        document.addEventListener('click', (event) => {
+            const dropdowns = document.querySelectorAll('.relative > div');
+            dropdowns.forEach(dropdown => {
+                if (!dropdown.previousElementSibling.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+            const menuBtn = event.target.closest('.relative > button');
+            if (menuBtn) {
+                const dropdown = menuBtn.nextElementSibling;
+                dropdown.classList.toggle('hidden');
+            }
+        });
+
+    </script>
+</body>
+
+</html>

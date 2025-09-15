@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda - DataFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1E1E1E, #000000);
+            color: #E5E7EB;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .floating-card {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 50px rgba(255, 215, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .floating-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.2);
+        }
+        .gold-button {
+            background: linear-gradient(45deg, #FFD700, #DAA520);
+            color: #000;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+        .gold-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="p-4 flex justify-between items-center bg-transparent backdrop-blur-md">
+        <div class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">DataFlow</div>
+        <nav class="flex space-x-4">
+            <a href="/profissional" class="px-4 py-2 rounded-full bg-gray-700 hover:bg-yellow-500 hover:text-black transition-colors">Voltar ao Painel</a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-8 fade-in">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                Minha Agenda
+            </h1>
+            <p class="text-gray-400">Aqui você pode gerenciar seus agendamentos.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Seção do Calendário -->
+            <div class="floating-card p-6">
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4">Calendário</h2>
+                <!-- Placeholder para um calendário -->
+                <div class="bg-gray-800 p-4 rounded-lg">
+                    <p class="text-center text-gray-400">Calendário será inserido aqui.</p>
+                </div>
+            </div>
+
+            <!-- Seção de Agendamentos do Dia -->
+            <div class="floating-card p-6">
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4">Agendamentos do Dia</h2>
+                <div id="agendamentos-container" class="space-y-4">
+                    <p id="loading-agendamentos" class="text-center text-gray-400">Carregando agendamentos...</p>
+                    <ul id="agendamentos-list">
+                        <!-- Agendamentos serão carregados aqui -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchAgendamentos();
+        });
+
+        async function fetchAgendamentos() {
+            const loadingElement = document.getElementById('loading-agendamentos');
+            const agendamentosList = document.getElementById('agendamentos-list');
+
+            loadingElement.classList.remove('hidden');
+            agendamentosList.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/agendamentos');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar agendamentos.');
+                }
+                const agendamentos = await response.json();
+
+                if (agendamentos.length === 0) {
+                    loadingElement.innerHTML = `<p class="text-center text-gray-400">Nenhum agendamento para hoje.</p>`;
+                } else {
+                    loadingElement.classList.add('hidden');
+                    agendamentos.forEach(agendamento => {
+                        const li = document.createElement('li');
+                        li.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center floating-card';
+                        li.innerHTML = `
+                            <div>
+                                <p class="font-bold text-white">${agendamento.client_name}</p>
+                                <p class="text-gray-400 text-sm">${agendamento.service} - ${agendamento.time}</p>
+                            </div>
+                            <span class="text-yellow-400 font-bold">${agendamento.date}</span>
+                        `;
+                        agendamentosList.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                loadingElement.innerHTML = `<p class="text-red-400">Erro: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+
+</html>

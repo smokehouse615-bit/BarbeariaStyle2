@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Profissional - DataFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1E1E1E, #000000);
+            color: #E5E7EB;
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .floating-card {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 50px rgba(255, 215, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .floating-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.2);
+        }
+
+        .gold-button {
+            background: linear-gradient(45deg, #FFD700, #DAA520);
+            color: #000;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+
+        .gold-button:hover {
+            transform: scale(1.05);
+        }
+
+        .text-gold {
+            background: -webkit-linear-gradient(45deg, #FFD700, #DAA520);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background-color: rgba(255, 215, 0, 0.2);
+        }
+
+        .calendar-day.current-day {
+            background-color: #FFD700;
+            color: black;
+            font-weight: bold;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(30, 30, 30, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            transform: scale(0.95);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal-open .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(45deg, #FFD700, #DAA520);
+            color: #000;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="p-4 flex justify-between items-center bg-transparent backdrop-blur-md">
+        <div class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">DataFlow</div>
+        <nav class="flex space-x-4">
+            <a href="/logout" class="px-4 py-2 rounded-full bg-gray-700 hover:bg-red-500 hover:text-white transition-colors">Sair</a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-8 fade-in">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                Bem-vindo, {{ user_email }}
+            </h1>
+            <p class="text-gray-400">Seu painel de controle e acesso às funcionalidades.</p>
+        </div>
+
+        <div id="painel-principal">
+            <!-- Seção de Faturamento -->
+            <div class="space-y-8">
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Card de Faturamento Total -->
+                    <div class="floating-card p-6 text-center">
+                        <h3 class="text-gray-400 text-sm">Faturamento Total</h3>
+                        <p id="total-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                    </div>
+                    <!-- Card de Faturamento por Mês -->
+                    <div class="floating-card p-6 text-center">
+                        <h3 class="text-gray-400 text-sm">Faturamento Mês</h3>
+                        <p id="monthly-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                    </div>
+                    <!-- Card de Faturamento por Semana -->
+                    <div class="floating-card p-6 text-center">
+                        <h3 class="text-gray-400 text-sm">Faturamento Semana</h3>
+                        <p id="weekly-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                    </div>
+                    <!-- Card de Faturamento por Dia -->
+                    <div class="floating-card p-6 text-center">
+                        <h3 class="text-gray-400 text-sm">Faturamento Hoje</h3>
+                        <p id="daily-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
+                <div id="agenda-card" class="floating-card p-6 text-center cursor-pointer">
+                    <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                        Agenda
+                    </h3>
+                    <p class="text-gray-400 mt-2">Gerencie seus agendamentos diários.</p>
+                </div>
+
+                <div class="floating-card p-6 text-center">
+                    <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                        Serviços e Produtos
+                    </h3>
+                    <p class="text-gray-400 mt-2">Seus serviços e produtos cadastrados.</p>
+                </div>
+
+                <div class="floating-card p-6 text-center">
+                    <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                        Nossos Serviços
+                    </h3>
+                    <p class="text-gray-400 mt-2">Veja a lista de serviços da empresa.</p>
+                </div>
+
+                <div class="floating-card p-6 text-center lg:col-span-3">
+                    <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                        Vales Lançados
+                    </h3>
+                    <div id="voucher-list" class="mt-4">
+                        <p class="text-gray-400">Carregando vales...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="agenda-section" class="hidden mt-8">
+            <div class="floating-card p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <button id="back-to-painel-btn" class="px-4 py-2 rounded-full gold-button hover:scale-105 transition-transform">
+                        Voltar
+                    </button>
+                    <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">Agenda do Profissional</h2>
+                    <button id="add-agendamento-btn" class="px-4 py-2 rounded-full gold-button hover:scale-105 transition-transform">
+                        + Agendamento
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center mb-4">
+                    <button id="prev-month" class="text-yellow-400 hover:text-white transition-colors text-2xl">&lt;</button>
+                    <span id="current-month" class="text-white text-xl"></span>
+                    <button id="next-month" class="text-yellow-400 hover:text-white transition-colors text-2xl">&gt;</button>
+                </div>
+
+                <div class="grid grid-cols-7 gap-1 text-center font-bold text-gray-400 mb-4">
+                    <span>Dom</span>
+                    <span>Seg</span>
+                    <span>Ter</span>
+                    <span>Qua</span>
+                    <span>Qui</span>
+                    <span>Sex</span>
+                    <span>Sáb</span>
+                </div>
+                <div id="calendar-grid" class="calendar-grid">
+                    <!-- Calendário será gerado aqui -->
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4">Agendamentos do Dia</h3>
+                    <div id="agendamentos-container" class="space-y-4">
+                        <p id="loading-agendamentos" class="text-center text-gray-400">Carregando agendamentos...</p>
+                        <ul id="agendamentos-list">
+                            <!-- Agendamentos serão carregados aqui -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="vendas-section" class="hidden mt-8">
+            <div class="floating-card p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <button id="back-to-painel-vendas-btn" class="px-4 py-2 rounded-full gold-button hover:scale-105 transition-transform">
+                        Voltar
+                    </button>
+                    <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                        Registro de Vendas
+                    </h2>
+                </div>
+                <!-- Formulário de Registro de Venda -->
+                <form id="venda-form" class="space-y-4">
+                    <div id="venda-message-container" class="mb-4 text-center"></div>
+                    <div>
+                        <label for="venda_client" class="block text-sm font-medium text-gray-400">Cliente</label>
+                        <div class="relative">
+                            <input type="text" id="venda_client_search" placeholder="Buscar cliente por nome, telefone ou CPF"
+                                class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 transition-colors">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <ul id="venda-client-search-results" class="absolute w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg max-h-40 overflow-y-auto z-10 hidden"></ul>
+                    </div>
+                    <input type="hidden" id="venda_client_name" name="client_name">
+                    <div>
+                        <label for="venda_service" class="block text-sm font-medium text-gray-400">Serviço/Produto</label>
+                        <input type="text" id="venda_service" name="service" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label for="venda_amount" class="block text-sm font-medium text-gray-400">Valor (R$)</label>
+                        <input type="number" id="venda_amount" name="amount" min="0.01" step="0.01" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label for="venda_payment_method" class="block text-sm font-medium text-gray-400">Forma de Pagamento</label>
+                        <select id="venda_payment_method" name="payment_method" required class="mt-1 block w-full px-4 py-2 bg-gray-700 bg-opacity-50 border border-gray-600 rounded-lg text-white">
+                            <option value="">Selecione uma forma de pagamento</option>
+                            <option value="Pix">Pix</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Débito">Débito</option>
+                            <option value="Crédito">Crédito</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full px-6 py-3 rounded-xl gold-button text-gray-900 shadow-lg hover:shadow-xl transition-transform">
+                        Registrar Venda
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="fab" id="open-venda-modal-btn">
+        +
+    </div>
+
+    <script>
+        const agendaCard = document.getElementById('agenda-card');
+        const painelPrincipal = document.getElementById('painel-principal');
+        const agendaSection = document.getElementById('agenda-section');
+        const backToPainelBtn = document.getElementById('back-to-painel-btn');
+        const agendamentoModal = document.getElementById('agendamento-modal');
+        const addAgendamentoBtn = document.getElementById('add-agendamento-btn');
+        const closeAgendamentoModalBtn = document.getElementById('close-agendamento-modal-btn');
+        const agendamentoForm = document.getElementById('agendamento-form');
+
+        const clientSearchInput = document.getElementById('agendamento_client_search');
+        const clientSearchResults = document.getElementById('client-search-results');
+        const agendamentoClientName = document.getElementById('agendamento_client_name');
+
+        const openVendaModalBtn = document.getElementById('open-venda-modal-btn');
+        const vendasSection = document.getElementById('vendas-section');
+        const backToPainelVendasBtn = document.getElementById('back-to-painel-vendas-btn');
+        const vendaForm = document.getElementById('venda-form');
+
+        const vendaClientSearchInput = document.getElementById('venda_client_search');
+        const vendaClientSearchResults = document.getElementById('venda-client-search-results');
+        const vendaClientName = document.getElementById('venda_client_name');
+
+        let currentMonth = new Date();
+        let currentSelectedDate = new Date();
+        let allClients = [];
+
+        agendaCard.addEventListener('click', () => {
+            painelPrincipal.classList.add('hidden');
+            agendaSection.classList.remove('hidden');
+            renderCalendar();
+            fetchAgendamentos(currentSelectedDate);
+        });
+
+        backToPainelBtn.addEventListener('click', () => {
+            agendaSection.classList.add('hidden');
+            painelPrincipal.classList.remove('hidden');
+        });
+
+        addAgendamentoBtn.addEventListener('click', async () => {
+            await fetchAllClients();
+            document.getElementById('agendamento_date').value = currentSelectedDate.toISOString().split('T')[0];
+            agendamentoModal.classList.add('modal-open');
+        });
+
+        closeAgendamentoModalBtn.addEventListener('click', () => {
+            agendamentoModal.classList.remove('modal-open');
+        });
+
+        openVendaModalBtn.addEventListener('click', async () => {
+            painelPrincipal.classList.add('hidden');
+            vendasSection.classList.remove('hidden');
+            await fetchAllClientsForVenda();
+        });
+
+        backToPainelVendasBtn.addEventListener('click', () => {
+            vendasSection.classList.add('hidden');
+            painelPrincipal.classList.remove('hidden');
+        });
+
+        agendamentoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(agendamentoForm);
+            const data = Object.fromEntries(formData.entries());
+            const messageContainer = document.getElementById('agendamento-message-container');
+
+            try {
+                const response = await fetch('/api/agendamentos/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    messageContainer.innerHTML = `<p class="text-green-400">${result.message}</p>`;
+                    agendamentoForm.reset();
+                    fetchAgendamentos(currentSelectedDate);
+                    setTimeout(() => agendamentoModal.classList.remove('modal-open'), 2000);
+                } else {
+                    messageContainer.innerHTML = `<p class="text-red-400">${result.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                messageContainer.innerHTML = `<p class="text-red-400">Erro ao conectar com o servidor. Tente novamente.</p>`;
+            }
+        });
+
+        vendaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(vendaForm);
+            const data = Object.fromEntries(formData.entries());
+            const messageContainer = document.getElementById('venda-message-container');
+
+            // Usar o nome do cliente do campo hidden
+            data.client_name = document.getElementById('venda_client_name').value;
+
+            try {
+                const response = await fetch('/api/sales/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    messageContainer.innerHTML = `<p class="text-green-400">${result.message}</p>`;
+                    vendaForm.reset();
+                    // Atualizar o faturamento na tela principal
+                    updateRevenueDisplay();
+                } else {
+                    messageContainer.innerHTML = `<p class="text-red-400">${result.message}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                messageContainer.innerHTML = `<p class="text-red-400">Erro ao conectar com o servidor. Tente novamente.</p>`;
+            }
+        });
+
+        // Funções de busca e filtro de clientes
+        async function fetchAllClients() {
+            try {
+                const response = await fetch('/api/users_for_agendamento');
+                allClients = await response.json();
+                filterClients();
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
+        }
+
+        async function fetchAllClientsForVenda() {
+            try {
+                const response = await fetch('/api/users_for_agendamento');
+                allClients = await response.json();
+                filterClientsForVenda();
+            } catch (error) {
+                console.error('Erro ao carregar clientes para venda:', error);
+            }
+        }
+
+        clientSearchInput.addEventListener('input', filterClients);
+
+        function filterClients() {
+            const searchTerm = clientSearchInput.value.toLowerCase();
+            clientSearchResults.innerHTML = '';
+
+            if (searchTerm.length > 0) {
+                const filteredClients = allClients.filter(client =>
+                    client.name.toLowerCase().includes(searchTerm) ||
+                    (client.phone && client.phone.toLowerCase().includes(searchTerm)) ||
+                    (client.cpf && client.cpf.toLowerCase().includes(searchTerm))
+                );
+
+                if (filteredClients.length > 0) {
+                    filteredClients.forEach(client => {
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors';
+                        li.textContent = client.name;
+                        li.addEventListener('click', () => {
+                            clientSearchInput.value = client.name;
+                            agendamentoClientName.value = client.name;
+                            clientSearchResults.classList.add('hidden');
+                        });
+                        clientSearchResults.appendChild(li);
+                    });
+                    clientSearchResults.classList.remove('hidden');
+                } else {
+                    clientSearchResults.classList.add('hidden');
+                }
+            } else {
+                clientSearchResults.classList.add('hidden');
+            }
+        }
+
+        vendaClientSearchInput.addEventListener('input', filterClientsForVenda);
+
+        function filterClientsForVenda() {
+            const searchTerm = vendaClientSearchInput.value.toLowerCase();
+            vendaClientSearchResults.innerHTML = '';
+
+            if (searchTerm.length > 0) {
+                const filteredClients = allClients.filter(client =>
+                    client.name.toLowerCase().includes(searchTerm) ||
+                    (client.phone && client.phone.toLowerCase().includes(searchTerm)) ||
+                    (client.cpf && client.cpf.toLowerCase().includes(searchTerm))
+                );
+
+                if (filteredClients.length > 0) {
+                    filteredClients.forEach(client => {
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors';
+                        li.textContent = client.name;
+                        li.addEventListener('click', () => {
+                            vendaClientSearchInput.value = client.name;
+                            vendaClientName.value = client.name;
+                            vendaClientSearchResults.classList.add('hidden');
+                        });
+                        vendaClientSearchResults.appendChild(li);
+                    });
+                    vendaClientSearchResults.classList.remove('hidden');
+                } else {
+                    vendaClientSearchResults.classList.add('hidden');
+                }
+            } else {
+                vendaClientSearchResults.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await updateRevenueDisplay();
+            await fetchVouchers();
+        });
+
+        async function updateRevenueDisplay() {
+            try {
+                const response = await fetch('/api/professional_revenue');
+                const revenueData = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('total-revenue').textContent = `R$ ${revenueData.total_revenue.toFixed(2)}`;
+                    document.getElementById('monthly-revenue').textContent = `R$ ${revenueData.monthly_revenue.toFixed(2)}`;
+                    document.getElementById('weekly-revenue').textContent = `R$ ${revenueData.weekly_revenue.toFixed(2)}`;
+                    document.getElementById('daily-revenue').textContent = `R$ ${revenueData.daily_revenue.toFixed(2)}`;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar faturamento:', error);
+            }
+        }
+
+        async function fetchVouchers() {
+            const voucherList = document.getElementById('voucher-list');
+            try {
+                const response = await fetch('/api/vouchers');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar vales.');
+                }
+                const vouchers = await response.json();
+
+                if (vouchers.length === 0) {
+                    voucherList.innerHTML = `<p class="text-center text-gray-400">Nenhum vale lançado.</p>`;
+                } else {
+                    voucherList.innerHTML = '';
+                    let totalAmount = 0;
+                    vouchers.forEach(voucher => {
+                        totalAmount += voucher.amount;
+                        const voucherItem = document.createElement('div');
+                        voucherItem.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center floating-card';
+                        voucherItem.innerHTML = `
+                            <div>
+                                <p class="font-bold text-white">Vale lançado</p>
+                                <p class="text-gray-400 text-sm">Em ${voucher.date_launched}</p>
+                            </div>
+                            <span class="text-gold font-bold">R$ ${voucher.amount.toFixed(2)}</span>
+                        `;
+                        voucherList.appendChild(voucherItem);
+                    });
+                    const totalElement = document.createElement('div');
+                    totalElement.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center floating-card mt-4';
+                    totalElement.innerHTML = `
+                        <p class="font-bold text-xl text-white">Total de Vales</p>
+                        <span class="text-gold font-bold text-xl">R$ ${totalAmount.toFixed(2)}</span>
+                    `;
+                    voucherList.appendChild(totalElement);
+                }
+            } catch (error) {
+                voucherList.innerHTML = `<p class="text-red-400">Erro ao carregar vales: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+
+        async function fetchAgendamentos(selectedDate) {
+            const loadingElement = document.getElementById('loading-agendamentos');
+            const agendamentosList = document.getElementById('agendamentos-list');
+
+            loadingElement.classList.remove('hidden');
+            agendamentosList.innerHTML = '';
+
+            const date = selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+            try {
+                const response = await fetch(`/api/agendamentos?date=${date}`);
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar agendamentos.');
+                }
+                const agendamentos = await response.json();
+
+                if (agendamentos.length === 0) {
+                    loadingElement.innerHTML = `<p class="text-center text-gray-400">Nenhum agendamento para este dia.</p>`;
+                } else {
+                    loadingElement.classList.add('hidden');
+                    agendamentos.forEach(agendamento => {
+                        const li = document.createElement('li');
+                        li.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center floating-card';
+                        li.innerHTML = `
+                            <div>
+                                <p class="font-bold text-white">${agendamento.client_name}</p>
+                                <p class="text-gray-400 text-sm">${agendamento.service} - ${agendamento.time}</p>
+                            </div>
+                        `;
+                        agendamentosList.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                loadingElement.innerHTML = `<p class="text-red-400">Erro: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+
+        function renderCalendar() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const currentMonthEl = document.getElementById('current-month');
+            const prevMonthBtn = document.getElementById('prev-month');
+            const nextMonthBtn = document.getElementById('next-month');
+
+            calendarGrid.innerHTML = '';
+
+            const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            currentMonthEl.textContent = `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
+
+            const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+            const lastDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+            // Preencher com dias vazios do mês anterior
+            for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day text-gray-600';
+                calendarGrid.appendChild(emptyDay);
+            }
+
+            // Preencher com os dias do mês
+            for (let i = 1; i <= lastDayOfMonth.getDate(); i++) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day text-white';
+                day.textContent = i;
+
+                const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
+                if (dayDate.toDateString() === new Date().toDateString()) {
+                    day.classList.add('current-day');
+                }
+
+                day.addEventListener('click', () => {
+                    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('current-day'));
+                    day.classList.add('current-day');
+                    currentSelectedDate = dayDate;
+                    fetchAgendamentos(dayDate);
+                });
+
+                calendarGrid.appendChild(day);
+            }
+
+            if (prevMonthBtn) {
+                 prevMonthBtn.onclick = () => {
+                    currentMonth.setMonth(currentMonth.getMonth() - 1);
+                    renderCalendar();
+                };
+            }
+
+            if (nextMonthBtn) {
+                nextMonthBtn.onclick = () => {
+                    currentMonth.setMonth(currentMonth.getMonth() + 1);
+                    renderCalendar();
+                };
+            }
+        }
+    </script>
+</body>
+
+</html>

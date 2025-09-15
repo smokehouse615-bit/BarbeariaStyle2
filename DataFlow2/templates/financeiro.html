@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Financeiro - DataFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1E1E1E, #000000);
+            color: #E5E7EB;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .floating-card {
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 50px rgba(255, 215, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .floating-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.2);
+        }
+        .gold-button {
+            background: linear-gradient(45deg, #FFD700, #DAA520);
+            color: #000;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+        .gold-button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="p-4 flex justify-between items-center bg-transparent backdrop-blur-md">
+        <div class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">DataFlow</div>
+        <nav class="flex space-x-4">
+            <a href="/admin" class="px-4 py-2 rounded-full bg-gray-700 hover:bg-yellow-500 hover:text-black transition-colors">Voltar ao Painel</a>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-8 fade-in">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
+                Painel Financeiro
+            </h1>
+            <p class="text-gray-400">Resumo financeiro em tempo real.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Card de Faturamento Total -->
+            <div class="floating-card p-6 text-center">
+                <h3 class="text-gray-400 text-sm">Faturamento Total</h3>
+                <p id="total-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+            </div>
+            <!-- Card de Vales Lançados -->
+            <div class="floating-card p-6 text-center">
+                <h3 class="text-gray-400 text-sm">Vales Lançados</h3>
+                <p id="total-vouchers" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+            </div>
+            <!-- Card de Lucro Líquido -->
+            <div class="floating-card p-6 text-center">
+                <h3 class="text-gray-400 text-sm">Lucro Líquido</h3>
+                <p id="net-revenue" class="text-4xl font-bold mt-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">R$ 0,00</p>
+            </div>
+        </div>
+
+        <div class="floating-card p-6 mt-8">
+            <h3 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4">Relatório de Vendas</h3>
+            <div id="loading-sales" class="text-center text-gray-400">Carregando vendas...</div>
+            <table id="sales-table" class="w-full text-left hidden">
+                <thead class="bg-gray-800">
+                    <tr>
+                        <th class="py-2 px-4 rounded-tl-lg">Cliente</th>
+                        <th class="py-2 px-4">Serviço</th>
+                        <th class="py-2 px-4">Valor</th>
+                        <th class="py-2 px-4">Pagamento</th>
+                        <th class="py-2 px-4 rounded-tr-lg">Data</th>
+                    </tr>
+                </thead>
+                <tbody id="sales-list" class="divide-y divide-gray-700">
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchFinancialSummary();
+            fetchSales();
+        });
+
+        async function fetchFinancialSummary() {
+            try {
+                const response = await fetch('/api/financial_summary');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar resumo financeiro.');
+                }
+                const summary = await response.json();
+
+                document.getElementById('total-revenue').textContent = `R$ ${summary.total_revenue.toFixed(2)}`;
+                document.getElementById('total-vouchers').textContent = `R$ ${summary.total_vouchers.toFixed(2)}`;
+                document.getElementById('net-revenue').textContent = `R$ ${summary.net_revenue.toFixed(2)}`;
+            } catch (error) {
+                console.error('Erro ao carregar resumo financeiro:', error);
+                document.getElementById('total-revenue').textContent = `Erro`;
+                document.getElementById('total-vouchers').textContent = `Erro`;
+                document.getElementById('net-revenue').textContent = `Erro`;
+            }
+        }
+
+        async function fetchSales() {
+            const loading = document.getElementById('loading-sales');
+            const table = document.getElementById('sales-table');
+            const list = document.getElementById('sales-list');
+            loading.classList.remove('hidden');
+            table.classList.add('hidden');
+            try {
+                const response = await fetch('/api/sales');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar vendas.');
+                }
+                const sales = await response.json();
+                list.innerHTML = '';
+                sales.forEach(sale => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td class="py-2 px-4">${sale.client_name}</td><td class="py-2 px-4">${sale.service}</td><td class="py-2 px-4">R$ ${sale.amount.toFixed(2)}</td><td class="py-2 px-4">${sale.payment_method}</td><td class="py-2 px-4">${sale.date_of_sale}</td>`;
+                    list.appendChild(row);
+                });
+                loading.classList.add('hidden');
+                table.classList.remove('hidden');
+            } catch (error) {
+                loading.innerHTML = `<p class="text-red-400">Erro ao carregar vendas.</p>`;
+                console.error('Fetch sales error:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>
