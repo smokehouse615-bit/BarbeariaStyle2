@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Profissional - Barbearia Style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-container {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            max-width: 32rem;
+            width: 100%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-overlay.open .modal-container {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Cabeçalho -->
+    <header class="p-4 bg-black shadow-md">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-primary cinzel-font">Barbearia Style</h1>
+            <div class="space-x-4">
+                <p class="text-gray-400">Bem-vindo, {{ profissional['nome'] }}</p>
+                <a href="{{ url_for('painel_profissional', profissional_nome=profissional['nome']) }}" class="text-primary font-bold">Agenda</a>
+                <a href="{{ url_for('painel_profissional_financeiro', profissional_nome=profissional['nome']) }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Financeiro</a>
+                <a href="/" class="text-gray-400 hover:text-primary transition-colors duration-200">Sair</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Painel do Profissional -->
+    <main class="flex-grow p-8 container mx-auto">
+        <div class="bg-card p-8 rounded-lg shadow-2xl">
+            <h2 class="text-3xl font-bold text-primary mb-8">Seus Agendamentos</h2>
+            <div class="mb-6 flex justify-between items-center">
+                <h3 class="text-xl font-bold">Agenda do Dia</h3>
+                <button onclick="openModal('add')" class="btn-primary px-4 py-2 rounded-full text-sm">Lançar Novo Agendamento</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-400">
+                    <thead class="text-xs text-gray-200 uppercase bg-[#2a2a2a]">
+                        <tr>
+                            <th scope="col" class="py-3 px-6">Cliente</th>
+                            <th scope="col" class="py-3 px-6">Data</th>
+                            <th scope="col" class="py-3 px-6">Horário</th>
+                            <th scope="col" class="py-3 px-6">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agendamento in agendamentos %}
+                        <tr class="bg-card border-b border-[#3a3a3a]">
+                            <td class="py-4 px-6 font-medium text-gray-200">{{ agendamento['cliente_nome'] }}</td>
+                            <td class="py-4 px-6">{{ agendamento['data'] }}</td>
+                            <td class="py-4 px-6">{{ agendamento['horario'] }}</td>
+                            <td class="py-4 px-6">
+                                <form action="{{ url_for('painel_profissional_excluir_agendamento') }}" method="post" class="inline-block" onsubmit="return confirm('Tem certeza que deseja cancelar este agendamento?');">
+                                    <input type="hidden" name="id" value="{{ agendamento['id'] }}">
+                                    <input type="hidden" name="profissional_nome" value="{{ profissional['nome'] }}">
+                                    <button type="submit" class="text-red-500 hover:underline">Cancelar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="bg-card">
+                            <td colspan="4" class="py-4 px-6 text-center text-gray-500">Nenhum agendamento para hoje.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Adicionar Agendamento -->
+    <div id="add-modal" class="modal-overlay">
+        <div class="modal-container">
+            <h3 class="text-2xl font-bold text-primary mb-6">Lançar Novo Agendamento</h3>
+            <form action="{{ url_for('painel_profissional_adicionar_agendamento') }}" method="post">
+                <input type="hidden" name="profissional_nome" value="{{ profissional['nome'] }}">
+                <div class="mb-4">
+                    <label for="add_cliente_nome" class="block text-sm font-medium text-gray-400 mb-2">Nome do Cliente</label>
+                    <input type="text" id="add_cliente_nome" name="cliente_nome" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                </div>
+                <div class="mb-4">
+                    <label for="add_data" class="block text-sm font-medium text-gray-400 mb-2">Data</label>
+                    <input type="date" id="add_data" name="data" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                </div>
+                <div class="mb-6">
+                    <label for="add_horario" class="block text-sm font-medium text-gray-400 mb-2">Horário</label>
+                    <input type="time" id="add_horario" name="horario" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal('add')" class="btn-primary px-6 py-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white">Cancelar</button>
+                    <button type="submit" class="btn-primary px-6 py-2 rounded-full">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="p-6 text-center text-gray-400 bg-black mt-auto">
+        <p>&copy; 2024 Barbearia Style. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        function openModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.add('open');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.remove('open');
+            document.body.classList.remove('overflow-hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Painel de Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+        .form-input {
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            width: 100%;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #E0E0E0;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Cabeçalho -->
+    <header class="p-4 bg-black shadow-md">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-primary cinzel-font">Barbearia Style</h1>
+            <div class="space-x-4">
+                <a href="{{ url_for('home') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Home</a>
+                <a href="{{ url_for('admin') }}" class="text-primary font-bold">Painel</a>
+                <a href="{{ url_for('configuracoes') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Contato</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Painel de Configurações -->
+    <main class="flex-grow p-8 container mx-auto">
+        <div class="bg-card p-8 rounded-lg shadow-2xl">
+            <h2 class="text-3xl font-bold text-primary mb-8">Configurações</h2>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <p class="text-green-400 bg-green-900/50 p-3 rounded-lg text-sm">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('configuracoes') }}" method="post">
+                <!-- Seção de Horário e Dias de Funcionamento -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-bold mb-4">Horário e Dias de Funcionamento</h3>
+                    {% set dias_semana = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'] %}
+                    {% for dia in dias_semana %}
+                        <div class="flex items-center space-x-4 mb-4">
+                            <div class="flex items-center w-40">
+                                <input type="checkbox" id="dia_{{ dia }}" name="dias_semana" value="{{ dia }}" class="h-4 w-4 text-[#D4AF37] focus:ring-[#D4AF37] border-gray-600 rounded">
+                                <label for="dia_{{ dia }}" class="ml-2 text-gray-300">{{ dia }}</label>
+                            </div>
+                            <div class="flex-1 flex space-x-2">
+                                <input type="time" name="abertura_{{ dia }}" class="form-input text-gray-200" placeholder="Abertura">
+                                <span class="text-gray-400">às</span>
+                                <input type="time" name="fechamento_{{ dia }}" class="form-input text-gray-200" placeholder="Fechamento">
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Seção de Contatos -->
+                <div class="mb-10">
+                    <h3 class="text-xl font-bold mb-4">Informações de Contato</h3>
+                    <div class="mb-4">
+                        <label for="telefone" class="form-label">Telefone</label>
+                        <input type="tel" id="telefone" name="telefone" class="form-input text-gray-200" placeholder="(99) 99999-9999">
+                    </div>
+                    <div class="mb-4">
+                        <label for="email_contato" class="form-label">Email de Contato</label>
+                        <input type="email" id="email_contato" name="email_contato" class="form-input text-gray-200" placeholder="contato@barbeariastyle.com">
+                    </div>
+                    <div class="mb-4">
+                        <label for="instagram" class="form-label">Instagram</label>
+                        <input type="text" id="instagram" name="instagram" class="form-input text-gray-200" placeholder="@barbeariastyle">
+                    </div>
+                    <div class="mb-6">
+                        <label for="whatsapp" class="form-label">Link do WhatsApp</label>
+                        <input type="url" id="whatsapp" name="whatsapp" class="form-input text-gray-200" placeholder="https://wa.me/5599999999999">
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-primary px-6 py-2 rounded-full">Salvar Configurações</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="p-6 text-center text-gray-400 bg-black mt-auto">
+        <p>&copy; 2024 Barbearia Style. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>

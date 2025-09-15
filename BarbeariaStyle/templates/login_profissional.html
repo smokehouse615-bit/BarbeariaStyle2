@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login de Profissional - Barbearia Style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+    </style>
+</head>
+<body class="antialiased flex items-center justify-center min-h-screen">
+    <div class="bg-card p-8 md:p-12 rounded-lg shadow-2xl max-w-md w-full text-center">
+        <h1 class="cinzel-font text-3xl font-bold text-primary mb-6">Barbearia Style</h1>
+        <h2 class="text-xl font-medium mb-8">Login de Profissional</h2>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <p class="text-red-400 bg-red-900/50 p-3 rounded-lg text-sm">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('login_profissional') }}" method="post">
+            <div class="mb-6 text-left">
+                <label for="email" class="block text-sm font-medium text-gray-400 mb-2">Email</label>
+                <input type="email" id="email" name="email" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="seuemail@exemplo.com" required>
+            </div>
+            <div class="mb-8 text-left">
+                <label for="senha" class="block text-sm font-medium text-gray-400 mb-2">CPF/CNPJ</label>
+                <input type="text" id="senha" name="senha" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Seu CPF ou CNPJ" required>
+            </div>
+            <button type="submit" class="w-full bg-primary text-black px-6 py-3 rounded-full font-bold hover:bg-[#C9A329] transition-colors duration-300">Entrar</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Agendamentos - Painel de Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Cabeçalho -->
+    <header class="p-4 bg-black shadow-md">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-primary cinzel-font">Barbearia Style</h1>
+            <div class="space-x-4">
+                <a href="/" class="text-gray-400 hover:text-primary transition-colors duration-200">Home</a>
+                <a href="/admin" class="text-primary font-bold">Painel</a>
+                <a href="/contato" class="text-gray-400 hover:text-primary transition-colors duration-200">Contato</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Painel de Gerenciamento de Agendamentos -->
+    <main class="flex-grow p-8 container mx-auto">
+        <div class="bg-card p-8 rounded-lg shadow-2xl">
+            <h2 class="text-3xl font-bold text-primary mb-8">Gerenciar Agendamentos</h2>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <p class="text-green-400 bg-green-900/50 p-3 rounded-lg text-sm">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="mb-6 flex justify-between items-center">
+                <h3 class="text-xl font-bold">Lista de Agendamentos</h3>
+                <a href="{{ url_for('gerenciar_agendamentos', adicionar=True) }}" class="btn-primary px-4 py-2 rounded-full text-sm">Adicionar Novo Agendamento</a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-400">
+                    <thead class="text-xs text-gray-200 uppercase bg-[#2a2a2a]">
+                        <tr>
+                            <th scope="col" class="py-3 px-6">ID</th>
+                            <th scope="col" class="py-3 px-6">Cliente</th>
+                            <th scope="col" class="py-3 px-6">Profissional</th>
+                            <th scope="col" class="py-3 px-6">Data</th>
+                            <th scope="col" class="py-3 px-6">Horário</th>
+                            <th scope="col" class="py-3 px-6">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for agendamento in agendamentos %}
+                        <tr class="bg-card border-b border-[#3a3a3a]">
+                            <td class="py-4 px-6 font-medium text-gray-200">{{ agendamento['id'] }}</td>
+                            <td class="py-4 px-6">{{ agendamento['cliente_nome'] }}</td>
+                            <td class="py-4 px-6">{{ agendamento['profissional'] }}</td>
+                            <td class="py-4 px-6">{{ agendamento['data'] }}</td>
+                            <td class="py-4 px-6">{{ agendamento['horario'] }}</td>
+                            <td class="py-4 px-6">
+                                <a href="{{ url_for('gerenciar_agendamentos', editar_id=agendamento['id']) }}" class="text-primary hover:underline mr-4">Editar</a>
+                                <a href="{{ url_for('gerenciar_agendamentos', excluir_id=agendamento['id']) }}" class="text-red-500 hover:underline">Excluir</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Formulário de Adicionar/Editar Agendamento (Modal) -->
+            {% if 'adicionar' in request.args or 'editar_id' in request.args %}
+            <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4">
+                <div class="bg-card p-8 rounded-lg shadow-2xl max-w-md w-full">
+                    <h3 class="text-2xl font-bold text-primary mb-6">{{ 'Adicionar Novo Agendamento' if 'adicionar' in request.args else 'Editar Agendamento' }}</h3>
+                    <form action="{{ url_for('gerenciar_agendamentos') }}" method="post">
+                        <input type="hidden" name="{{ 'adicionar' if 'adicionar' in request.args else 'editar' }}" value="True">
+                        <input type="hidden" name="id" value="{{ agendamento_editar['id'] if 'editar_id' in request.args else '' }}">
+                        <div class="mb-4">
+                            <label for="cliente_nome" class="block text-sm font-medium text-gray-400 mb-2">Nome do Cliente</label>
+                            <input type="text" id="cliente_nome" name="cliente_nome" value="{{ agendamento_editar['cliente_nome'] if 'editar_id' in request.args else '' }}" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="profissional" class="block text-sm font-medium text-gray-400 mb-2">Profissional</label>
+                            <select id="profissional" name="profissional" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                                {% for profissional in profissionais %}
+                                <option value="{{ profissional['nome'] }}" {% if profissional['nome'] == agendamento_editar.profissional %}selected{% endif %}>{{ profissional['nome'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label for="data" class="block text-sm font-medium text-gray-400 mb-2">Data</label>
+                            <input type="date" id="data" name="data" value="{{ agendamento_editar['data'] if 'editar_id' in request.args else '' }}" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="horario" class="block text-sm font-medium text-gray-400 mb-2">Horário</label>
+                            <input type="time" id="horario" name="horario" value="{{ agendamento_editar['horario'] if 'editar_id' in request.args else '' }}" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                        </div>
+                        <div class="flex justify-end space-x-4">
+                            <a href="{{ url_for('gerenciar_agendamentos') }}" class="btn-primary px-6 py-2 rounded-full">Cancelar</a>
+                            <button type="submit" class="btn-primary px-6 py-2 rounded-full">{{ 'Salvar' if 'editar_id' in request.args else 'Adicionar' }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="p-6 text-center text-gray-400 bg-black mt-auto">
+        <p>&copy; 2024 Barbearia Style. Todos os direitos reservados.</p>
+    </footer>
+
+</body>
+</html>

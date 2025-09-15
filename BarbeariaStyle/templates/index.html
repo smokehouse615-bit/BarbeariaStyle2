@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia Style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .playfair-font {
+            font-family: 'Playfair Display', serif;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+        .card-3d:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.4);
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Cabeçalho -->
+    <header class="p-4 bg-black shadow-md">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-primary playfair-font">Barbearia Style</h1>
+            <div class="space-x-4">
+                <a href="{{ url_for('login') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Login</a>
+                <a href="{{ url_for('cadastro') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Cadastro</a>
+                <a href="{{ url_for('configuracoes') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Contato</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow p-8 container mx-auto">
+        <!-- Galeria de Serviços -->
+        <section class="mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Painel de Imagem 1 -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a] text-center card-3d">
+                    <img src="/static/ft2.jpg" alt="Corte de Cabelo" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-bold text-primary">Corte de Cabelo</h3>
+                </div>
+                <!-- Painel de Imagem 2 -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a] text-center card-3d">
+                    <img src="/static/ft3.jpg" alt="Barba Completa" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-bold text-primary">Barba Completa</h3>
+                </div>
+                <!-- Painel de Imagem 3 -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a] text-center card-3d">
+                    <img src="/static/ft4.webp" alt="Tratamento de Pele" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-bold text-primary">Tratamento de Pele</h3>
+                </div>
+                <!-- Painel de Imagem 4 -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a] text-center card-3d">
+                    <img src="/static/ft5.webp" alt="Hidratação Capilar" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-bold text-primary">Hidratação Capilar</h3>
+                </div>
+                <!-- Painel de Imagem 5 -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a] text-center card-3d">
+                    <img src="/static/ft6.webp" alt="Massagem Facial" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-bold text-primary">Social</h3>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="p-6 text-center text-gray-400 bg-black mt-auto">
+        <p class="mb-4">&copy; 2024 Barbearia Style. Todos os direitos reservados.</p>
+        <div class="flex justify-center space-x-6 text-lg text-primary">
+            {% if configuracoes.instagram %}
+            <a href="https://instagram.com/{{ configuracoes.instagram }}" target="_blank" class="hover:text-white transition-colors duration-200">
+                <i class="fab fa-instagram"></i>
+            </a>
+            {% endif %}
+            {% if configuracoes.whatsapp %}
+            <a href="https://wa.me/{{ configuracoes.whatsapp }}" target="_blank" class="hover:text-white transition-colors duration-200">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+            {% endif %}
+        </div>
+    </footer>
+</body>
+</html>

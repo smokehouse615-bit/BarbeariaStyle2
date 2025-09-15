@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Profissional Financeiro - Barbearia Style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+        .fab-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+        }
+        .fab {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background-color: #D4AF37;
+            color: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-container {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            max-width: 32rem;
+            width: 100%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-overlay.open .modal-container {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Cabeçalho -->
+    <header class="p-4 bg-black shadow-md">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-primary cinzel-font">Barbearia Style</h1>
+            <div class="space-x-4">
+                <p class="text-gray-400">Bem-vindo, {{ profissional_nome }}</p>
+                <a href="{{ url_for('painel_profissional', profissional_nome=profissional_nome) }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Agenda</a>
+                <a href="{{ url_for('painel_profissional_financeiro', profissional_nome=profissional_nome) }}" class="text-primary font-bold">Financeiro</a>
+                <a href="/" class="text-gray-400 hover:text-primary transition-colors duration-200">Sair</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Painel de Financeiro do Profissional -->
+    <main class="flex-grow p-8 container mx-auto">
+        <div class="bg-card p-8 rounded-lg shadow-2xl">
+            <h2 class="text-3xl font-bold text-primary mb-8">Seu Financeiro</h2>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <p class="text-green-400 bg-green-900/50 p-3 rounded-lg text-sm">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Faturamento do Dia -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <p class="text-gray-400">Faturamento do Dia</p>
+                    <p class="text-3xl font-bold text-primary mt-2">R$ {{ "%.2f"|format(faturamento.dia) }}</p>
+                </div>
+                <!-- Faturamento da Semana -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <p class="text-gray-400">Faturamento da Semana</p>
+                    <p class="text-3xl font-bold text-primary mt-2">R$ {{ "%.2f"|format(faturamento.semana) }}</p>
+                </div>
+                <!-- Faturamento do Mês -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <p class="text-gray-400">Faturamento do Mês</p>
+                    <p class="text-3xl font-bold text-primary mt-2">R$ {{ "%.2f"|format(faturamento.mes) }}</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Botão Flutuante de Adicionar Venda -->
+    <div class="fab-container">
+        <button onclick="openModal()" class="fab">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Modal de Adicionar Venda -->
+    <div id="venda-modal" class="modal-overlay">
+        <div class="modal-container">
+            <h3 class="text-2xl font-bold text-primary mb-6">Lançar Nova Venda</h3>
+            <form action="{{ url_for('painel_profissional_adicionar_venda', profissional_nome=profissional_nome) }}" method="post">
+                <input type="hidden" name="profissional_nome" value="{{ profissional_nome }}">
+                <div class="mb-4">
+                    <label for="valor_venda" class="block text-sm font-medium text-gray-400 mb-2">Valor da Venda</label>
+                    <input type="number" step="0.01" id="valor_venda" name="valor_venda" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                </div>
+                <div class="mb-4">
+                    <label for="forma_pagamento" class="block text-sm font-medium text-gray-400 mb-2">Forma de Pagamento</label>
+                    <select id="forma_pagamento" name="forma_pagamento" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="pix">Pix</option>
+                        <option value="debito">Débito</option>
+                        <option value="credito">Crédito</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="observacao" class="block text-sm font-medium text-gray-400 mb-2">Observação</label>
+                    <textarea id="observacao" name="observacao" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"></textarea>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal()" class="btn-primary px-6 py-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white">Cancelar</button>
+                    <button type="submit" class="btn-primary px-6 py-2 rounded-full">Lançar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="p-6 text-center text-gray-400 bg-black mt-auto">
+        <p>&copy; 2024 Barbearia Style. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        function openModal() {
+            const modal = document.getElementById('venda-modal');
+            modal.classList.add('open');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('venda-modal');
+            modal.classList.remove('open');
+        }
+    </script>
+</body>
+</html>

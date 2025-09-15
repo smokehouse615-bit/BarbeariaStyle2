@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Cliente - Barbearia Style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-container {
+            background-color: #1a1a1a;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            max-width: 32rem;
+            width: 100%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-overlay.open .modal-container {
+            transform: scale(1);
+        }
+        .text-error {
+            color: #EF4444;
+        }
+        .text-success {
+            color: #10B981;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Cabeçalho -->
+    <header class="p-4 bg-black shadow-md">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary">Barbearia Style</h1>
+            <div class="space-x-4">
+                <button onclick="openModal('info')" class="text-gray-400 hover:text-primary transition-colors duration-200">Informações</button>
+                <a href="{{ url_for('login') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Sair</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow p-8 container mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-8">Bem-vindo, {{ cliente_nome }}!</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="rounded-lg p-4 mb-4 text-white text-center {% if category == 'success' %}bg-green-600{% elif category == 'error' %}bg-red-600{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Botão para Agendar -->
+        <div class="flex justify-center mb-8">
+            <button onclick="openModal('agendar')" class="btn-primary px-6 py-3 rounded-full text-lg">
+                Agendar Novo Horário
+            </button>
+        </div>
+
+        <!-- Seção de Agendamentos -->
+        <section class="mb-8">
+            <h3 class="text-2xl font-bold text-primary mb-4">Seus Agendamentos</h3>
+            {% if agendamentos %}
+                <ul class="space-y-4">
+                    {% for agendamento in agendamentos %}
+                    <li class="bg-card p-6 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
+                        <div>
+                            <p class="font-bold text-lg">{{ agendamento.servico }} com {{ agendamento.profissional }}</p>
+                            <p class="text-gray-400">Data: {{ agendamento.data }} às {{ agendamento.horario }}</p>
+                        </div>
+                        <form action="{{ url_for('painel_cliente_cancelar_agendamento') }}" method="post" class="mt-4 md:mt-0">
+                            <input type="hidden" name="id" value="{{ agendamento.id }}">
+                            <input type="hidden" name="cliente_nome" value="{{ cliente_nome }}">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200">
+                                Cancelar
+                            </button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-center text-gray-500">Você não tem agendamentos marcados.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <!-- Modal de Agendamento -->
+    <div id="agendar-modal" class="modal-overlay">
+        <div class="modal-container">
+            <h3 class="text-2xl font-bold text-primary mb-6">Agendar Novo Horário</h3>
+            <form action="{{ url_for('agendar_servico') }}" method="post" onsubmit="return checkAvailability()">
+                <input type="hidden" name="cliente_nome" value="{{ cliente_nome }}">
+                <div class="mb-4">
+                    <label for="servico" class="block text-sm font-medium text-gray-400 mb-2">Serviço</label>
+                    <select id="servico" name="servico" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                        <option value="">Selecione um serviço</option>
+                        {% for servico in servicos %}
+                        <option value="{{ servico.nome }}">{{ servico.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="profissional" class="block text-sm font-medium text-gray-400 mb-2">Profissional de Preferência</label>
+                    <select id="profissional" name="profissional" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                        <option value="">Selecione um profissional</option>
+                        {% for profissional in profissionais %}
+                        <option value="{{ profissional.nome }}">{{ profissional.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="data" class="block text-sm font-medium text-gray-400 mb-2">Data</label>
+                    <input type="date" id="data" name="data" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                </div>
+                <div class="mb-6">
+                    <label for="horario" class="block text-sm font-medium text-gray-400 mb-2">Horário</label>
+                    <input type="time" id="horario" name="horario" class="w-full p-3 bg-[#2a2a2a] text-gray-200 border border-[#3a3a3a] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]" required>
+                </div>
+                <div id="availability-message" class="mb-4 text-center text-sm font-medium"></div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeModal('agendar')" class="btn-primary px-6 py-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white">Cancelar</button>
+                    <button type="submit" class="btn-primary px-6 py-2 rounded-full">Agendar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Seção de Informações -->
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-container">
+            <h3 class="text-2xl font-bold text-primary mb-6">Informações da Barbearia</h3>
+            <div class="space-y-6">
+                <!-- Horários -->
+                <div>
+                    <h4 class="text-xl font-bold mb-2">Horário de Funcionamento</h4>
+                    <ul class="text-gray-400 space-y-1">
+                        {% for dia in ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'] %}
+                            {% if 'horario_' + dia in configuracoes and configuracoes['horario_' + dia] %}
+                            <li>
+                                <span class="font-medium text-white">{{ dia }}:</span>
+                                {{ configuracoes['horario_' + dia] }}
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <!-- Contatos -->
+                <div>
+                    <h4 class="text-xl font-bold mb-2">Contatos</h4>
+                    <ul class="text-gray-400 space-y-1">
+                        {% if 'telefone' in configuracoes and configuracoes.telefone %}
+                        <li><span class="font-medium text-white">Telefone:</span> {{ configuracoes.telefone }}</li>
+                        {% endif %}
+                        {% if 'email_contato' in configuracoes and configuracoes.email_contato %}
+                        <li><span class="font-medium text-white">Email:</span> {{ configuracoes.email_contato }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <!-- Redes Sociais -->
+                <div>
+                    <h4 class="text-xl font-bold mb-2">Redes Sociais</h4>
+                    <div class="flex space-x-4 text-2xl">
+                        {% if 'instagram' in configuracoes and configuracoes.instagram %}
+                        <a href="https://instagram.com/{{ configuracoes.instagram }}" target="_blank" class="text-primary hover:text-white"><i class="fab fa-instagram"></i></a>
+                        {% endif %}
+                        {% if 'whatsapp' in configuracoes and configuracoes.whatsapp %}
+                        <a href="https://wa.me/{{ configuracoes.whatsapp }}" target="_blank" class="text-primary hover:text-white"><i class="fab fa-whatsapp"></i></a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-8">
+                <button onclick="closeModal('info')" class="btn-primary px-6 py-2 rounded-full bg-gray-600 hover:bg-gray-700 text-white">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Rodapé -->
+    <footer class="p-6 text-center text-gray-400 bg-black mt-auto">
+        <p>&copy; 2024 Barbearia Style. Todos os direitos reservados.</p>
+    </footer>
+    <script>
+        function openModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.add('open');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.remove('open');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        async function checkAvailability() {
+            const profissional = document.getElementById('profissional').value;
+            const data = document.getElementById('data').value;
+            const horario = document.getElementById('horario').value;
+            const messageElement = document.getElementById('availability-message');
+
+            if (!profissional || !data || !horario) {
+                messageElement.textContent = '';
+                return true;
+            }
+
+            const response = await fetch(`/api/check_availability?profissional=${profissional}&data=${data}&horario=${horario}`);
+            const result = await response.json();
+
+            if (!result.available) {
+                messageElement.textContent = 'Este horário já está agendado. Por favor, escolha outro.';
+                messageElement.classList.add('text-error');
+                messageElement.classList.remove('text-success');
+                return false;
+            } else {
+                messageElement.textContent = 'Horário disponível!';
+                messageElement.classList.remove('text-error');
+                messageElement.classList.add('text-success');
+                return true;
+            }
+        }
+
+        document.getElementById('servico').addEventListener('change', checkAvailability);
+        document.getElementById('profissional').addEventListener('change', checkAvailability);
+        document.getElementById('data').addEventListener('change', checkAvailability);
+        document.getElementById('horario').addEventListener('change', checkAvailability);
+
+    </script>
+</body>
+</html>

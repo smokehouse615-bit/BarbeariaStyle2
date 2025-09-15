@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Administração</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E0E0E0;
+        }
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+        .text-primary {
+            color: #D4AF37;
+        }
+        .bg-card {
+            background-color: #1a1a1a;
+        }
+        .btn-primary {
+            background-color: #D4AF37;
+            color: #000000;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #C9A329;
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+    <!-- Cabeçalho -->
+    <header class="p-4 bg-black shadow-md">
+        <nav class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-primary cinzel-font">Barbearia Style</h1>
+            <div class="space-x-4">
+                <a href="{{ url_for('home') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Home</a>
+                <a href="{{ url_for('admin') }}" class="text-primary font-bold">Painel</a>
+                <a href="{{ url_for('configuracoes') }}" class="text-gray-400 hover:text-primary transition-colors duration-200">Contato</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Painel de Administração -->
+    <main class="flex-grow p-8 container mx-auto">
+        <div class="bg-card p-8 rounded-lg shadow-2xl">
+            <h2 class="text-3xl font-bold text-primary mb-8">Painel de Administração</h2>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <p class="text-green-400 bg-green-900/50 p-3 rounded-lg text-sm">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Gerenciar Usuários -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <h3 class="text-xl font-bold mb-4">Gerenciar Usuários</h3>
+                    <p class="text-gray-400 mb-4">Veja e gerencie todos os usuários cadastrados. Edite permissões ou remova contas.</p>
+                    <a href="{{ url_for('gerenciar_usuarios') }}" class="btn-primary px-6 py-2 rounded-full">Ver Usuários</a>
+                </div>
+
+                <!-- Gerenciar Agendamentos -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <h3 class="text-xl font-bold mb-4">Gerenciar Agendamentos</h3>
+                    <p class="text-gray-400 mb-4">Confira os agendamentos, edite horários ou adicione novos serviços para seus clientes.</p>
+                    <a href="{{ url_for('gerenciar_agendamentos') }}" class="btn-primary px-6 py-2 rounded-full">Ver Agendamentos</a>
+                </div>
+
+                <!-- Gerenciar Serviços -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <h3 class="text-xl font-bold mb-4">Gerenciar Serviços</h3>
+                    <p class="text-gray-400 mb-4">Adicione ou remova serviços da sua barbearia, defina preços e descrições.</p>
+                    <a href="{{ url_for('gerenciar_servicos') }}" class="btn-primary px-6 py-2 rounded-full">Ver Serviços</a>
+                </div>
+
+                <!-- Gerenciar Profissionais -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <h3 class="text-xl font-bold mb-4">Gerenciar Profissionais</h3>
+                    <p class="text-gray-400 mb-4">Gerencie a equipe de profissionais da barbearia. Adicione, edite ou remova profissionais.</p>
+                    <a href="{{ url_for('gerenciar_profissionais') }}" class="btn-primary px-6 py-2 rounded-full">Ver Profissionais</a>
+                </div>
+
+                <!-- Relatórios -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <h3 class="text-xl font-bold mb-4">Relatórios</h3>
+                    <p class="text-gray-400 mb-4">Acompanhe a performance do seu negócio com dados e estatísticas sobre agendamentos e clientes.</p>
+                    <a href="{{ url_for('relatorios') }}" class="btn-primary px-6 py-2 rounded-full">Ver Relatórios</a>
+                </div>
+
+                <!-- Configurações -->
+                <div class="bg-card p-6 rounded-lg shadow-lg border border-[#3a3a3a]">
+                    <h3 class="text-xl font-bold mb-4">Configurações</h3>
+                    <p class="text-gray-400 mb-4">Ajuste as configurações gerais do site, incluindo horários de funcionamento e dados de contato.</p>
+                    <a href="{{ url_for('configuracoes') }}" class="btn-primary px-6 py-2 rounded-full">Configurar</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="p-6 text-center text-gray-400 bg-black mt-auto">
+        <p>&copy; 2024 Barbearia Style. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>
