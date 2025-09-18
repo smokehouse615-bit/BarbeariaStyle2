@@ -1,1 +1,3 @@
-Flaskgunicornpsycopg2-binary
+Flask
+gunicorn
+psycopg2-binary
