@@ -177,7 +177,7 @@ def home():
     configuracoes = {row['chave']: row['valor'] for row in
                      conn.execute('SELECT chave, valor FROM configuracoes').fetchall()}
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    profissionais = conn.execute('SELECT nome FROM profissionais').fetchall()
+    profissionais = conn.execute('SELECT * FROM profissionais').fetchall()
     conn.close()
     return render_template('index.html', configuracoes=configuracoes, servicos=servicos, profissionais=profissionais)
 
@@ -682,6 +682,7 @@ def configuracoes():
     configuracoes = {row['chave']: row['valor'] for row in configuracoes_db}
     conn.close()
     return render_template('configuracoes.html', configuracoes=configuracoes)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
