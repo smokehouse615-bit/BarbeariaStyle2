@@ -1,0 +1,1 @@
+Flaskgunicornpsycopg2-binary
